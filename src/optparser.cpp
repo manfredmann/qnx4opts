@@ -64,7 +64,7 @@ void OptParser::add(String opt_name, String opt_desc, opt_types_t opt_type, bool
 				opt->name	= "";
 			}
 		} else {
-			opt->name 		= String(opt_name, 0, sep).lower();
+			opt->name 	= String(opt_name, 0, sep).lower();
 			opt->name_long 	= String(opt_name, sep + 1).lower();
 		}
 	}
