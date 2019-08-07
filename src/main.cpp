@@ -28,7 +28,7 @@ int main(int argc, char **argv) {
 	//Параметр -h(--hex) с аргументом типа hex (преобразуется в unsigned long), не обязательный
 	opt.add("e,hex",	"Hex",			OPT_HEX,	false);
 	//Параметр -v счётчик (считает количество v)
-	opt.add("v",		"Verbose test",	OPT_COUNTER);
+	opt.add("v",		"Verbose test",		OPT_COUNTER);
 
 	if (!opt.parse(argc, argv, true)) {
 		return 0;
