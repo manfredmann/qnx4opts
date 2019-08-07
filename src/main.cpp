@@ -14,21 +14,21 @@ int main(int argc, char **argv) {
 	OptParser opt(argv[0], "Options parser");
 
 	//Параметр -t без аргументов
-	opt.add("t", 		"Without args");
+	opt.add("t",		"Without args");
 	//Параметр --test без аргументов
-	opt.add("test", 	"Without args");
+	opt.add("test",		"Without args");
 	//Параметр -h (длинное имя --help) без аргументов
-	opt.add("h,help", 	"Help");
+	opt.add("h,help",	"Help");
 	//Параметр -i(--int) с аргументом типа integer, обязательный
-	opt.add("i,int", 	"Integer", 		OPT_INT, 	true);
+	opt.add("i,int",	"Integer",		OPT_INT,	true);
 	//Параметр -f(--float) с аргументом типа float, обязательный
-	opt.add("f,float", 	"Float", 		OPT_FLOAT, 	true);
+	opt.add("f,float",	"Float",		OPT_FLOAT,	true);
 	//Параметр -s(--string) с аргументом типа string, обязательный
-	opt.add("s,string", "String", 		OPT_STRING, true);
+	opt.add("s,string",	"String",		OPT_STRING,	true);
 	//Параметр -h(--hex) с аргументом типа hex (преобразуется в unsigned long), не обязательный
-	opt.add("e,hex", 	"Hex", 			OPT_HEX, 	false);
+	opt.add("e,hex",	"Hex",			OPT_HEX,	false);
 	//Параметр -v счётчик (считает количество v)
-	opt.add("v", 		"Verbose test", OPT_COUNTER);
+	opt.add("v",		"Verbose test",	OPT_COUNTER);
 
 	if (!opt.parse(argc, argv, true)) {
 		return 0;

@@ -22,26 +22,26 @@ void OptParser::add(String opt_name, String opt_desc) {
 
 	if (sep == -1) {
 		if (opt_name.length() == 1) {
-			opt->name 		= opt_name.lower();
-			opt->name_long 	= "";
+			opt->name	= opt_name.lower();
+			opt->name_long	= "";
 		} else {
-			opt->name_long 	= opt_name.lower();
-			opt->name 		= "";
+			opt->name_long	= opt_name.lower();
+			opt->name	= "";
 		}
 	} else {
-		opt->name 		= String(opt_name, 0, sep).lower();
-		opt->name_long 	= String(opt_name, sep + 1).lower();
+		opt->name		= String(opt_name, 0, sep).lower();
+		opt->name_long		= String(opt_name, sep + 1).lower();
 	}
 
-	opt->desc 			= opt_desc;
-	opt->type 			= OPT_BOOL;
-	opt->req  			= false;
+	opt->desc		= opt_desc;
+	opt->type		= OPT_BOOL;
+	opt->req 		= false;
 	opt->present 		= false;
-	opt->param_string 	= "";
-	opt->param_int 		= 0;
-	opt->param_float 	= 0.0;
-	opt->param_hex 		= 0x00;
-	opt->param_counter 	= 0;
+	opt->param_string	= "";
+	opt->param_int		= 0;
+	opt->param_float	= 0.0;
+	opt->param_hex		= 0x00;
+	opt->param_counter	= 0;
 
 	this->opt_list.append(opt);
 }
@@ -52,16 +52,16 @@ void OptParser::add(String opt_name, String opt_desc, opt_types_t opt_type, bool
 	int sep = opt_name.index(",");
 
 	if (opt_type == OPT_COUNTER) {
-		opt->name 		= opt_name[0];
-		opt->name_long 	= "";
+		opt->name	= opt_name[0];
+		opt->name_long	= "";
 	} else {
 		if (sep == -1) {
 			if (opt_name.length() == 1) {
-				opt->name 		= opt_name.lower();
-				opt->name_long 	= "";
+				opt->name	= opt_name.lower();
+				opt->name_long	= "";
 			} else {
-				opt->name_long 	= opt_name.lower();
-				opt->name 		= "";			
+				opt->name_long	= opt_name.lower();
+				opt->name	= "";
 			}
 		} else {
 			opt->name 		= String(opt_name, 0, sep).lower();
@@ -69,15 +69,15 @@ void OptParser::add(String opt_name, String opt_desc, opt_types_t opt_type, bool
 		}
 	}
 
-	opt->desc 			= String(opt_desc);
-	opt->type 			= opt_type;
-	opt->req  			= req;
-	opt->present 		= false;
-	opt->param_string 	= "";
-	opt->param_int 		= 0;
-	opt->param_float 	= 0.0;
-	opt->param_hex 		= 0x00;
-	opt->param_counter 	= 0;
+	opt->desc		= String(opt_desc);
+	opt->type		= opt_type;
+	opt->req 		= req;
+	opt->present		= false;
+	opt->param_string	= "";
+	opt->param_int		= 0;
+	opt->param_float	= 0.0;
+	opt->param_hex		= 0x00;
+	opt->param_counter	= 0;
 
 	this->opt_list.append(opt);
 }
