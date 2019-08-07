@@ -58,8 +58,11 @@ void print_help();
 ```C++
 String          get_string(String opt_name);
 int             get_int(String opt_name);
-long            get_long(String opt_name);
+unsigned int    get_uint(String opt_name);
+long int        get_long(String opt_name);
+unsigned long   get_ulong(String opt_name);
 float           get_float(String opt_name);
+double          get_double(String opt_name);
 bool            get_bool(String opt_name);
 unsigned long   get_hex(String opt_name);
 unsigned int    get_counter(String opt_name);
