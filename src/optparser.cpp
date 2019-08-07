@@ -47,6 +47,9 @@ void OptParser::add(String opt_name, String opt_desc) {
 	opt->present 		= false;
 	opt->param_string	= "";
 	opt->param_int		= 0;
+	opt->param_uint		= 0;
+	opt->param_long		= 0;
+	opt->param_ulong	= 0;
 	opt->param_float	= 0.0;
 	opt->param_hex		= 0x00;
 	opt->param_counter	= 0;
@@ -83,6 +86,9 @@ void OptParser::add(String opt_name, String opt_desc, opt_types_t opt_type, bool
 	opt->present		= false;
 	opt->param_string	= "";
 	opt->param_int		= 0;
+	opt->param_uint		= 0;
+	opt->param_long		= 0;
+	opt->param_ulong	= 0;
 	opt->param_float	= 0.0;
 	opt->param_hex		= 0x00;
 	opt->param_counter	= 0;
@@ -176,16 +182,21 @@ bool OptParser::parse(int argc, char **argv, bool help) {
 			}
 			
 			argi++;
+			char *arg_opt = argv[argi];
 
 			if (argi == argc) {
 				goto on_help;
 			}
 
 			if (this->is_param(argv[argi]) || this->is_param_long(argv[argi])) {
-				goto on_help;
-			}
+				unsigned long tmp;
+				char *endptr = NULL;
 
-			char *arg_opt = argv[argi];
+				tmp = strtol(arg_opt, &endptr, 10);
+
+				if (arg_opt == endptr)
+					goto on_help;
+			}
 
 			switch(opt->type) {
 				case OPT_STRING: {
@@ -196,8 +207,16 @@ bool OptParser::parse(int argc, char **argv, bool help) {
 					opt->param_int = atoi(arg_opt);
 					break;
 				}
+				case OPT_UINT: {
+					opt->param_uint = strtoul(arg_opt, NULL, 10);
+					break;
+				}
 				case OPT_LONG: {
-					opt->param_long = atol(arg_opt);
+					opt->param_long = strtol(arg_opt, NULL, 10);
+					break;
+				}
+				case OPT_ULONG: {
+					opt->param_ulong = strtoul(arg_opt, NULL, 10);
 					break;
 				}
 				case OPT_FLOAT: {
@@ -361,11 +380,31 @@ int OptParser::get_int(String opt_name) {
 	}
 }
 
-long OptParser::get_long(String opt_name) {
+unsigned int OptParser::get_uint(String opt_name) {
+	opt_t *opt = find_opt(opt_name);
+
+	if (opt != NULL && opt->present && opt->type == OPT_UINT) {
+		return opt->param_uint;
+	} else {
+		return 0;
+	}
+}
+
+long int OptParser::get_long(String opt_name) {
 	opt_t *opt = find_opt(opt_name);
 
 	if (opt != NULL && opt->present && opt->type == OPT_LONG) {
 		return opt->param_long;
+	} else {
+		return 0;
+	}
+}
+
+unsigned long OptParser::get_ulong(String opt_name) {
+	opt_t *opt = find_opt(opt_name);
+
+	if (opt != NULL && opt->present && opt->type == OPT_ULONG) {
+		return opt->param_ulong;
 	} else {
 		return 0;
 	}

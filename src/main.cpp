@@ -27,15 +27,23 @@ int main(int argc, char **argv) {
 	opt->add("s,string",	"String",		OPT_STRING,	true);
 	//Параметр -h(--hex) с аргументом типа hex (преобразуется в unsigned long), не обязательный
 	opt->add("e,hex",	"Hex",			OPT_HEX,	false);
+	//Параметр -l(--long) с аргументом типа long, не обязательный
+	opt->add("l,long",	"Long",			OPT_LONG,	false);
+	//Параметр -u(--unsigned) с аргументом типа unsigned int, не обязательный
+	opt->add("u,unsigned",	"unsigned",		OPT_UINT,	false);
+	//Параметр -m(--ulong) с аргументом типа unsigned long, не обязательный
+	opt->add("m,ulong",	"ulong",		OPT_ULONG,	false);
 	//Параметр -v счётчик (считает количество v)
 	opt->add("v",		"Verbose test",		OPT_COUNTER);
 
 	if (!opt->parse(argc, argv, true)) {
+		delete opt;
 		return 0;
 	}
 
 	if (opt->find("h")) {
 		opt->print_help();
+		delete opt;
 		return 0;
 	}
 
@@ -60,7 +68,19 @@ int main(int argc, char **argv) {
 	}
 
 	if (opt->find("hex")) {
-		printf("hex = 0x%X\n", (const char *) opt->get_hex("hex"));
+		printf("hex = 0x%X\n", opt->get_hex("hex"));
+	}
+
+	if (opt->find("long")) {
+		printf("long = %ld\n", opt->get_long("long"));
+	}
+
+	if (opt->find("unsigned")) {
+		printf("long = %u\n", opt->get_uint("unsigned"));
+	}
+
+	if (opt->find("ulong")) {
+		printf("Unsigned long = %lu\n", opt->get_ulong("ulong"));
 	}
 
 	if (opt->find("v")) {

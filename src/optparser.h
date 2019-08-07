@@ -21,7 +21,9 @@ typedef enum {
 	OPT_BOOL,
 	OPT_STRING,
 	OPT_INT,
+	OPT_UINT,
 	OPT_LONG,
+	OPT_ULONG,
 	OPT_FLOAT,
 	OPT_HEX,
 	OPT_COUNTER,
@@ -37,7 +39,9 @@ typedef struct {
 
 	String			param_string;
 	int			param_int;
-	long			param_long;
+	unsigned int		param_uint;
+	long int		param_long;
+	unsigned long		param_ulong;
 	float			param_float;
 	unsigned long		param_hex;
 	unsigned int		param_counter;
@@ -59,7 +63,9 @@ class OptParser {
 
 		String			get_string(String opt_name);
 		int			get_int(String opt_name);
-		long			get_long(String opt_name);
+		unsigned int		get_uint(String opt_name);
+		long int		get_long(String opt_name);
+		unsigned long		get_ulong(String opt_name);
 		float			get_float(String opt_name);
 		bool			get_bool(String opt_name);
 		unsigned long		get_hex(String opt_name);
