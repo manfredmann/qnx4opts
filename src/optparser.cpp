@@ -51,6 +51,7 @@ void OptParser::add(String opt_name, String opt_desc) {
 	opt->param_long		= 0;
 	opt->param_ulong	= 0;
 	opt->param_float	= 0.0;
+	opt->param_double	= 0.0;
 	opt->param_hex		= 0x00;
 	opt->param_counter	= 0;
 
@@ -90,6 +91,7 @@ void OptParser::add(String opt_name, String opt_desc, opt_types_t opt_type, bool
 	opt->param_long		= 0;
 	opt->param_ulong	= 0;
 	opt->param_float	= 0.0;
+	opt->param_double	= 0.0;
 	opt->param_hex		= 0x00;
 	opt->param_counter	= 0;
 
@@ -221,6 +223,10 @@ bool OptParser::parse(int argc, char **argv, bool help) {
 				}
 				case OPT_FLOAT: {
 					opt->param_float = atof(arg_opt);
+					break;
+				}
+				case OPT_DOUBLE: {
+					opt->param_double = strtod(arg_opt, NULL);
 					break;
 				}
 				case OPT_HEX: {
@@ -415,6 +421,16 @@ float OptParser::get_float(String opt_name) {
 
 	if (opt != NULL && opt->present && opt->type == OPT_FLOAT) {
 		return opt->param_float;
+	} else {
+		return 0;
+	}
+}
+
+double OptParser::get_double(String opt_name) {
+	opt_t *opt = find_opt(opt_name);
+
+	if (opt != NULL && opt->present && opt->type == OPT_DOUBLE) {
+		return opt->param_double;
 	} else {
 		return 0;
 	}

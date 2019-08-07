@@ -30,9 +30,11 @@ int main(int argc, char **argv) {
 	//Параметр -l(--long) с аргументом типа long, не обязательный
 	opt->add("l,long",	"Long",			OPT_LONG,	false);
 	//Параметр -u(--unsigned) с аргументом типа unsigned int, не обязательный
-	opt->add("u,unsigned",	"unsigned",		OPT_UINT,	false);
+	opt->add("u,unsigned",	"Unsigned int",		OPT_UINT,	false);
 	//Параметр -m(--ulong) с аргументом типа unsigned long, не обязательный
-	opt->add("m,ulong",	"ulong",		OPT_ULONG,	false);
+	opt->add("m,ulong",	"Unsigned long",	OPT_ULONG,	false);
+	//Параметр -b(--double) с аргументом типа double, не обязательный
+	opt->add("b,double",	"Double",		OPT_DOUBLE,	false);
 	//Параметр -v счётчик (считает количество v)
 	opt->add("v",		"Verbose test",		OPT_COUNTER);
 
@@ -59,6 +61,10 @@ int main(int argc, char **argv) {
 		printf("int = %d\n", opt->get_int("int"));
 	}
 
+	if (opt->find("unsigned")) {
+		printf("Unsigned int = %u\n", opt->get_uint("unsigned"));
+	}
+
 	if (opt->find("float")) {
 		printf("float = %f\n", opt->get_float("float"));
 	}
@@ -72,15 +78,15 @@ int main(int argc, char **argv) {
 	}
 
 	if (opt->find("long")) {
-		printf("long = %ld\n", opt->get_long("long"));
-	}
-
-	if (opt->find("unsigned")) {
-		printf("long = %u\n", opt->get_uint("unsigned"));
+		printf("Long = %ld\n", opt->get_long("long"));
 	}
 
 	if (opt->find("ulong")) {
 		printf("Unsigned long = %lu\n", opt->get_ulong("ulong"));
+	}
+
+	if (opt->find("double")) {
+		printf("Double = %f\n", opt->get_double("double"));
 	}
 
 	if (opt->find("v")) {
