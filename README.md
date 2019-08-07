@@ -4,8 +4,8 @@
 ### Основные методы
 
 ```C++
-void 			add(String opt_name, String opt_desc);
-void 			add(String opt_name, String opt_desc, opt_types_t opt_type, bool req = false);
+void add(String opt_name, String opt_desc);
+void add(String opt_name, String opt_desc, opt_types_t opt_type, bool req = false);
 ```
 Добавить параметр
 
@@ -35,7 +35,7 @@ typedef enum {
 Обязателен параметр или нет
 ***
 ```C++
-bool 			parse(int argc, char **argv, bool help);
+bool parse(int argc, char **argv, bool help);
 ```
 Разобрать параметры.
 
@@ -45,23 +45,23 @@ bool 			parse(int argc, char **argv, bool help);
 Вывод справки при отсутствии необходимы аргументов
 ***
 ```C++	
-bool 			find(String opt_name);
+bool find(String opt_name);
 ```
 Найти параметр
 ***
 ```C++
-void 			print_help();
+void print_help();
 ```
 Вывести справку
 ***
 ```C++
-String 			get_string(String opt_name);
-int 			get_int(String opt_name);
-long 			get_long(String opt_name);
-float 			get_float(String opt_name);
-bool 			get_bool(String opt_name);
-unsigned long 	get_hex(String opt_name);
-unsigned int 	get_counter(String opt_name);
+String			get_string(String opt_name);
+int				get_int(String opt_name);
+long			get_long(String opt_name);
+float			get_float(String opt_name);
+bool			get_bool(String opt_name);
+unsigned long	get_hex(String opt_name);
+unsigned int	get_counter(String opt_name);
 ```
 Получить значение аргумента
 
