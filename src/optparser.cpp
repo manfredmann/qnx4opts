@@ -15,6 +15,14 @@ OptParser::OptParser(String app_name, String app_desc) {
 	this->app_name = app_name;
 }
 
+OptParser::~OptParser() {
+	for (int i = 0; i < opt_list.entries(); ++i) {
+		delete opt_list[i];
+	}
+
+	opt_list.clear();
+}
+
 void OptParser::add(String opt_name, String opt_desc) {
 	opt_t *opt = new opt_t;
 

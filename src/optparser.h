@@ -48,7 +48,8 @@ typedef WCValOrderedVector<opt_t *> opt_vector_t;
 class OptParser {
 	public:
 		OptParser(String app_name, String app_desc);
-
+		~OptParser();
+		
 		void 			add(String opt_name, String opt_desc);
 		void 			add(String opt_name, String opt_desc, opt_types_t opt_type, bool req = false);
 
