@@ -334,7 +334,6 @@ void OptParser::print_help() {
 			printf("--%s", (const char *) opt->name_long);
 		}
 
-		printf("\t");
 
 		int opt_length = 0;
 
@@ -351,6 +350,12 @@ void OptParser::print_help() {
 		}		
 
 		for (int j = 0; j < max_len - (int) floor(opt_length / 8.0); j++) {
+			printf("\t");
+		}
+
+		if (opt->type != OPT_BOOL) {
+			printf("<arg>\t");
+		} else {
 			printf("\t");
 		}
 
