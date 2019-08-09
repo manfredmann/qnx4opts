@@ -37,16 +37,7 @@ typedef struct {
 	opt_types_t		type;
 	bool			req;
 	bool			present;
-
-	String			param_string;
-	int			param_int;
-	unsigned int		param_uint;
-	long int		param_long;
-	unsigned long		param_ulong;
-	float			param_float;
-	double			param_double;
-	unsigned long		param_hex;
-	unsigned int		param_counter;
+	void 			*param;
 } opt_t;
 
 typedef WCValOrderedVector<opt_t *> opt_vector_t;
