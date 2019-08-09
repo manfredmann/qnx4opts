@@ -18,7 +18,40 @@ OptParser::OptParser(String app_name, String app_desc) {
 OptParser::~OptParser() {
 	for (int i = 0; i < opt_list.entries(); ++i) {
 		if (opt_list[i]->param != NULL) {
-			delete opt_list[i]->param;
+			switch(opt_list[i]->type) {
+				case OPT_STRING: {
+					delete (String *) opt_list[i]->param;
+					break;
+				}
+				case OPT_INT: {
+					delete (int *) opt_list[i]->param;
+					break;
+				}
+				case OPT_UINT: {
+					delete (unsigned int *) opt_list[i]->param;
+					break;
+				}
+				case OPT_LONG: {
+					delete (long int *) opt_list[i]->param;
+					break;
+				}
+				case OPT_ULONG: {
+					delete (unsigned long *) opt_list[i]->param;
+					break;
+				}
+				case OPT_FLOAT: {
+					delete (float *) opt_list[i]->param;
+					break;
+				}
+				case OPT_DOUBLE: {
+					delete (double *) opt_list[i]->param;
+					break;
+				}
+				case OPT_HEX: {
+					delete (unsigned long *) opt_list[i]->param;
+					break;
+				}
+			}
 		}
 		delete opt_list[i];
 	}
