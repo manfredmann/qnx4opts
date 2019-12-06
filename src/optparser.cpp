@@ -7,6 +7,8 @@
 */
 
 #include "optparser.h"
+#include "re.h"
+
 #include <stdio.h>
 #include <math.h>
 
@@ -66,21 +68,21 @@ void OptParser::add(String opt_name, String opt_desc) {
 
 	if (sep == -1) {
 		if (opt_name.length() == 1) {
-			opt->name	= opt_name.lower();
+			opt->name		= opt_name;
 			opt->name_long	= "";
 		} else {
-			opt->name_long	= opt_name.lower();
-			opt->name	= "";
+			opt->name_long	= opt_name;
+			opt->name		= "";
 		}
 	} else {
-		opt->name		= String(opt_name, 0, sep).lower();
-		opt->name_long		= String(opt_name, sep + 1).lower();
+		opt->name		= String(opt_name, 0, sep);
+		opt->name_long	= String(opt_name, sep + 1);
 	}
 
 	opt->desc		= opt_desc;
 	opt->type		= OPT_BOOL;
 	opt->req 		= false;
-	opt->present 		= false;
+	opt->present 	= false;
 	opt->param 		= NULL;
 
 	this->opt_list.append(opt);
@@ -92,54 +94,86 @@ void OptParser::add(String opt_name, String opt_desc, opt_types_t opt_type, bool
 	int sep = opt_name.index(",");
 
 	if (opt_type == OPT_COUNTER) {
-		opt->name	= opt_name[0];
+		opt->name		= opt_name[0];
 		opt->name_long	= "";
 	} else {
 		if (sep == -1) {
 			if (opt_name.length() == 1) {
-				opt->name	= opt_name.lower();
+				opt->name		= opt_name;
 				opt->name_long	= "";
 			} else {
-				opt->name_long	= opt_name.lower();
-				opt->name	= "";
+				opt->name_long	= opt_name;
+				opt->name		= "";
 			}
 		} else {
-			opt->name 	= String(opt_name, 0, sep).lower();
-			opt->name_long 	= String(opt_name, sep + 1).lower();
+			opt->name 		= String(opt_name, 0, sep);
+			opt->name_long 	= String(opt_name, sep + 1);
 		}
 	}
 
 	opt->desc		= String(opt_desc);
 	opt->type		= opt_type;
 	opt->req 		= req;
-	opt->present		= false;
+	opt->present	= false;
 	opt->param 		= NULL;
 
 	this->opt_list.append(opt);
 }
 
-bool OptParser::is_param(String val) {
-	if (val.length() < 2) {
-		return false;
+arg_type_t OptParser::is_arg(const char *str) {
+	int index = re_match("^-[^-]$", str);
+
+	if (index != -1) {
+		return ARG_SHORT;
 	}
 
-	if (val[0] == '-') {
-		return true;
+	index = re_match("^-[^-]\\=.+$", str);
+
+	if (index != -1) {
+		return ARG_SHORT;
 	}
 
-	return false;
+	index = re_match("^-[^-].+$", str);
+
+	if (index != -1) {
+		return ARG_SHORTWPARAM;
+	}
+
+	index = re_match("^--.+$", str);
+
+	if (index != -1) {
+		return ARG_LONG;
+	}
+
+	return ARG_NO;
 }
 
-bool OptParser::is_param_long(String val) {
-	if (val.length() < 3) {
-		return false;
-	}
+int OptParser::find_eq(const char *str) {
+	return re_match("\\=", str) + 1;
+}
 
-	if (val[0] == '-' && val[1] == '-') {
-		return true;
-	}
+bool OptParser::is_negatvie_decimal(const char *str) {
+	int index = re_match("^-\\d+$", str);
 
-	return false;
+	return index + 1;
+}
+
+bool OptParser::is_decimal(const char *str) {
+	int index = re_match("^\\d+$", str);
+
+	return index + 1;
+}
+
+bool OptParser::is_double(const char *str) {
+	int index = re_match("^\\d+\\.\\d+$", str);
+
+	return index + 1;	
+}
+
+bool OptParser::is_negative_double(const char *str) {
+	int index = re_match("^-\\d+\\.\\d+$", str);
+
+	return index + 1;	
 }
 
 bool OptParser::parse(int argc, char **argv, bool help) {
@@ -147,140 +181,216 @@ bool OptParser::parse(int argc, char **argv, bool help) {
 	unsigned int i;
 
 	if (argc < 2) {
-		goto on_help;
+		return true;
 	}
 
 	while (argi != argc) {
-		String val(argv[argi]);
-		String param;
+		String 		val(argv[argi]);
+		String 		name;
+		String 		param;
+		arg_type_t 	type = is_arg(argv[argi]);
 
-		if (this->is_param_long(val)) {
-			param = String(String(val).lower(), 2);
-		} else if (this->is_param(val)) {
-			param = String(String(val).lower(), 1);
-		} else {
-			argi++;
-			continue;
+		switch(type) {
+			case ARG_SHORT: {
+				name = String(val, 1, 1);
+
+				if (argi + 1 != argc) {
+					if (is_arg(argv[argi + 1]) == ARG_NO) {
+						param = String(argv[argi + 1]);
+					}
+				}
+
+				int eq = find_eq(val);
+
+				if (eq) {
+					param = String(val, eq);
+				}
+
+				break;
+			}
+			case ARG_SHORTWPARAM: {
+				name = String(val, 1, 1);
+				param = String(val, 2);
+
+				break;
+			}
+			case ARG_LONG: {
+				name = String(val, 2);
+
+				if (argi + 1 != argc) {
+					if (is_arg(argv[argi + 1]) == ARG_NO) {
+						param = String(argv[argi + 1]);
+					}
+				}
+
+				int eq = find_eq(name);
+
+				if (eq) {
+					param = String(name, eq);
+					name = String(name, 0, eq - 1);
+				}
+
+				break;
+			}
+			default: {
+				++argi;
+				continue;
+			}
 		}
 
 		for (i = 0; i < this->opt_list.entries(); ++i) {
 			opt_t *opt = this->opt_list[i];
 
-			if (opt->type == OPT_COUNTER && !this->is_param_long(val) && this->is_param(val) && param[0] == opt->name) {
-				char param_char = param[0];
-				bool is_counter = true;
-
-				for (int j = 1; j < param.length(); ++j) {
-					if (param[j] != param_char) {
-						is_counter = false;
-						break;
+			switch(type) {
+				case ARG_SHORT:
+				case ARG_SHORTWPARAM: {
+					if (opt->name != name) {
+						continue;
 					}
+
+					if (opt->type == OPT_BOOL) {
+						opt->present = true;
+						continue;
+					}
+
+					if (opt->present) {
+						goto on_help;
+					}
+
+					break;
 				}
+				case ARG_LONG: {
+					if (opt->name_long != name) {
+						continue;
+					}
 
-				if (!is_counter) {
-					continue;
+					if (opt->type == OPT_BOOL) {
+						opt->present = true;
+						continue;
+					}
+
+					if (opt->present) {
+						goto on_help;
+					}
+
+					break;
 				}
-
-				opt->present = true;
-
-				opt->param = new unsigned int;
-				*(unsigned int *) opt->param = param.length();
-				break;
 			}
 
-			if (this->is_param_long(val) && opt->name_long != param) {
-				continue;
-			}
-
-			if (!this->is_param_long(val) && this->is_param(val) && opt->name != param) {
-				continue;
-			}
-
-			if (opt->present) {
+			if (param.length() == 0 && opt->type != OPT_COUNTER) {
 				goto on_help;
-			}
-
-			if (opt->type == OPT_BOOL) {
-				opt->present = true;
-				break;
-			}
-			
-			argi++;
-			char *arg_opt = argv[argi];
-
-			if (argi == argc) {
-				goto on_help;
-			}
-
-			if (this->is_param(argv[argi]) || this->is_param_long(argv[argi])) {
-				unsigned long tmp;
-				char *endptr = NULL;
-
-				tmp = strtol(arg_opt, &endptr, 10);
-
-				if (arg_opt == endptr)
-					goto on_help;
 			}
 
 			switch(opt->type) {
+				case OPT_COUNTER: {
+					char param_char = name[0];
+					bool is_counter = true;
+
+					for (int j = 0; j < param.length(); ++j) {
+						if (param[j] != param_char) {
+							is_counter = false;
+							break;
+						}
+					}
+
+					if (!is_counter) {
+						goto on_help;
+					}
+
+					opt->present = true;
+
+					opt->param = new unsigned int;
+					*(unsigned int *) opt->param = param.length() + 1;
+
+					break;
+				}
 				case OPT_STRING: {
-					opt->param = new String(arg_opt);
+					opt->param = new String(param);
+
 					break;
 				}
 				case OPT_INT: {
-					int param = atoi(arg_opt);
+					if ((!is_negatvie_decimal(param)) && (!is_decimal(param))) {
+						goto on_help;
+					}
+
+					int raw_param = atoi((const char *) param);
 
 					opt->param = new int;
-					memcpy(opt->param, &param, sizeof(int));
+					memcpy(opt->param, &raw_param, sizeof(int));
+
 					break;
 				}
 				case OPT_UINT: {
-					unsigned int param = strtoul(arg_opt, NULL, 10);
+					if (is_negatvie_decimal(param) || !is_decimal(param)) {
+						goto on_help;
+					}
+
+					unsigned int raw_param = strtoul((const char *) param, NULL, 10);
 
 					opt->param = new unsigned int;
-					memcpy(opt->param, &param, sizeof(unsigned int));
+					memcpy(opt->param, &raw_param, sizeof(unsigned int));
+
 					break;
 				}
 				case OPT_LONG: {
-					long int param = strtol(arg_opt, NULL, 10);
+					if ((!is_negatvie_decimal(param)) && (!is_decimal(param))) {
+						goto on_help;
+					}
+
+					long int raw_param = strtol((const char *) param, NULL, 10);
 
 					opt->param = new long int;
-					memcpy(opt->param, &param, sizeof(long int));
+					memcpy(opt->param, &raw_param, sizeof(long int));
+
 					break;
 				}
 				case OPT_ULONG: {
-					unsigned long param = strtoul(arg_opt, NULL, 10);
+					if (is_negatvie_decimal(param) || !is_decimal(param)) {
+						goto on_help;
+					}
+
+					unsigned long raw_param = strtoul((const char *) param, NULL, 10);
 
 					opt->param = new unsigned long;
-					memcpy(opt->param, &param, sizeof(unsigned long));
+					memcpy(opt->param, &raw_param, sizeof(unsigned long));
+
 					break;
 				}
 				case OPT_FLOAT: {
-					float param = atof(arg_opt);
+					float raw_param = atof((const char *) param);
 
 					opt->param = new float;
-					memcpy(opt->param, &param, sizeof(float));
+					memcpy(opt->param, &raw_param, sizeof(float));
+
 					break;
 				}
 				case OPT_DOUBLE: {
-					double param = strtod(arg_opt, NULL);
+					if (!is_double(param) && !is_negative_double(param) && !is_decimal(param) && !is_negatvie_decimal(param)) {
+						goto on_help;
+					}
+
+					double raw_param = strtod((const char *) param, NULL);
 
 					opt->param = new double;
-					memcpy(opt->param, &param, sizeof(double));
+					memcpy(opt->param, &raw_param, sizeof(double));
+
 					break;
 				}
 				case OPT_HEX: {
-					unsigned long param = strtoul(arg_opt, NULL, 16);
+					unsigned long raw_param = strtoul((const char *) param, NULL, 16);
 
 					opt->param = new unsigned long;
-					memcpy(opt->param, &param, sizeof(unsigned long));
+					memcpy(opt->param, &raw_param, sizeof(unsigned long));
+
 					break;
 				}
 			}
+
 			opt->present = true;
-			break;
 		}
-		argi++;
+
+		++argi;
 	}
 
 	for (i = 0; i < this->opt_list.entries(); ++i) {
@@ -306,11 +416,11 @@ bool OptParser::find(String opt_name) {
 		opt_t *opt = this->opt_list[i];
 
 		if (opt_name.length() > 1) {
-			if (opt->name_long == opt_name.lower() && opt->present) {
+			if (opt->name_long == opt_name && opt->present) {
 				return true;
 			}
 		} else {
-			if (opt->name == opt_name.lower() && opt->present) {
+			if (opt->name == opt_name && opt->present) {
 				return true;
 			}	
 		}
@@ -326,73 +436,94 @@ void OptParser::print_help() {
 
 	int max_len = 0;
 	unsigned int i;
-	
+
 	for (i = 0; i < size; ++i) {
 		opt_t *opt = this->opt_list[i];
 
-		int opt_length = 0;
+		int opt_len = 0;
 
 		if (opt->name.length() != 0) {
-			opt_length += opt->name.length() + 1;
-
-			if (opt->name_long.length() != 0) {
-				opt_length += 8;
-			}
+			opt_len += opt->name.length() + 1;
 		}
 
 		if (opt->name_long.length() != 0) {
-			opt_length += opt->name_long.length() + 2;
-		}	
+			opt_len += opt->name_long.length() + 2;
+		}
 
-		if (max_len < opt_length) {
-			max_len = opt_length;
+		if (max_len < opt_len) {
+			max_len = opt_len;
 		}
 	}
 
-	max_len = (int) ceil(max_len / 8.0);
-
 	for (i = 0; i < size; ++i) {
-		opt_t *opt = this->opt_list[i];
+		opt_t *opt = this->opt_list[i];		
 
-		printf("\t");
+		int opt_len = 0;
 
-		if (opt->name.length() > 0) {
+		printf("  ");
+
+		if (opt->name.length() != 0) {
+			opt_len += opt->name.length() + 1;
+
 			printf("-%s", (const char *) opt->name);
 		}
 
-		if (opt->name_long.length() > 0) {
-			if (opt->name.length() > 0) {
-				printf("        ");
+		if (opt->name_long.length() != 0) {
+			if (opt->name.length() != 0) {
+				printf(", ");
+				opt_len += 2;
 			}
+
+			opt_len += opt->name_long.length() + 2;
+
 			printf("--%s", (const char *) opt->name_long);
 		}
 
+		for (int j = 0; j < max_len - opt_len + 4; ++j) {
+			printf(" ");
+		}
 
-		int opt_length = 0;
-
-		if (opt->name.length() != 0) {
-			opt_length += opt->name.length() + 1;
-
-			if (opt->name_long.length() != 0) {
-				opt_length += 8;
+		switch(opt->type) {
+			case OPT_COUNTER:
+			case OPT_BOOL: {
+				printf("        ");
+				break;
+			}
+			case OPT_INT: {
+				printf("<int>   ");
+				break;
+			}
+			case OPT_UINT: {
+				printf("<uint>  ");
+				break;
+			}
+			case OPT_LONG: {
+				printf("<long>  ");
+				break;
+			}
+			case OPT_ULONG: {
+				printf("<ulong> ");
+				break;
+			}
+			case OPT_FLOAT: {
+				printf("<float> ");
+				break;
+			}
+			case OPT_DOUBLE: {
+				printf("<double>");
+				break;
+			}
+			case OPT_HEX: {
+				printf("<hex>   ");
+				break;
+			}
+			case OPT_STRING: {
+				printf("<string>");
+				break;
 			}
 		}
 
-		if (opt->name_long.length() != 0) {
-			opt_length += opt->name_long.length() + 2;
-		}		
-
-		for (int j = 0; j < max_len - (int) floor(opt_length / 8.0); j++) {
-			printf("\t");
-		}
-
-		if (opt->type != OPT_BOOL) {
-			printf("<arg>\t");
-		} else {
-			printf("\t");
-		}
-
-		printf("%s\n", (const char *)opt->desc);
+		printf(" - %s\n", (const char *)opt->desc);
 	}
 }
 
@@ -401,11 +532,11 @@ opt_t *OptParser::find_opt(String opt_name) {
 		opt_t *opt = this->opt_list[i];
 
 		if (opt_name.length() > 1) {
-			if (opt->name_long == opt_name.lower() && opt->present) {
+			if (opt->name_long == opt_name && opt->present) {
 				return opt;
 			}
 		} else {
-			if (opt->name == opt_name.lower() && opt->present) {
+			if (opt->name == opt_name && opt->present) {
 				return opt;
 			}	
 		}

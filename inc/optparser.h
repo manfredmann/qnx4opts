@@ -40,6 +40,13 @@ typedef struct {
 	void 			*param;
 } opt_t;
 
+typedef enum {
+	ARG_SHORT,
+	ARG_LONG,
+	ARG_SHORTWPARAM,
+	ARG_NO,
+} arg_type_t;
+
 typedef WCValOrderedVector<opt_t *> opt_vector_t;
 
 class OptParser {
@@ -55,22 +62,27 @@ class OptParser {
 		void 			print_help();
 
 		String			get_string(String opt_name);
-		int			get_int(String opt_name);
-		unsigned int		get_uint(String opt_name);
+		int				get_int(String opt_name);
+		unsigned int	get_uint(String opt_name);
 		long int		get_long(String opt_name);
-		unsigned long		get_ulong(String opt_name);
+		unsigned long	get_ulong(String opt_name);
 		float			get_float(String opt_name);
 		double			get_double(String opt_name);
 		bool			get_bool(String opt_name);
-		unsigned long		get_hex(String opt_name);
-		unsigned int		get_counter(String opt_name);
+		unsigned long	get_hex(String opt_name);
+		unsigned int	get_counter(String opt_name);
 
 	private:
 		String 			app_name;
 		String 			app_desc;
-		opt_vector_t		opt_list;
+		opt_vector_t	opt_list;
 
-		bool			is_param(String val);
-		bool			is_param_long(String val);
+		int 			find_eq(const char *str);
+		arg_type_t 		is_arg(const char *str);
+		bool 			is_negatvie_decimal(const char *str);
+		bool 			is_decimal(const char *str);
+		bool 			is_double(const char *str);
+		bool 			is_negative_double(const char *str);
+
 		opt_t *			find_opt(String opt_name);
 };

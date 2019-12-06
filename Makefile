@@ -1,6 +1,6 @@
-TARGET = optparser
+TARGET = qnx4opts
 SRCDIR = ./src/
-SRCS = optparser.cpp main.cpp
+SRCS = re.cpp optparser.cpp main.cpp
 BINDIR = ./bin/
 OBJDIR = ./obj/
 OBJS = $(SRCS:.cpp=.o)

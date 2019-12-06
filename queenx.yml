@@ -1,0 +1,34 @@
+local:
+  project_name: "qnx4opts"
+  project_dirs: 
+    - src
+    - obj
+    - bin
+    - inc
+  project_files:
+    - Makefile
+remote:
+  host: "qnx4work"
+  projects_path: "/root/projects"
+build:
+  cmd_pre: ""
+  cmd_build: "make"
+  cmd_post: ""
+  cmd_clean: "make clean"
+run:
+  bin_path: "bin"
+  bin_name: "qnx4opts"
+  custom:
+    - 
+      name: "test"
+      args:
+        - -i 1
+        - -f 3.14
+        - -s hello
+    - 
+      name: "test2"
+      args:
+        - -i 1
+        - -f 3.14
+        - -s "Hello, world!"
+        - -e 0xAA55
