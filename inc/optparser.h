@@ -6,29 +6,14 @@
  * for more details.
 */
 
+#ifndef OPTPARSER_H
+#define OPTPARSER_H
+
 #include <stdlib.h>
 #include <string.h>
-#include <sys/types.h>
 #include <String.h>
-#include <wcvector.h>
 
-typedef uint8_t bool;
-
-#define true 1
-#define false 0
-
-typedef enum {
-    OPT_BOOL,
-    OPT_STRING,
-    OPT_INT,
-    OPT_UINT,
-    OPT_LONG,
-    OPT_ULONG,
-    OPT_FLOAT,
-    OPT_DOUBLE,
-    OPT_HEX,
-    OPT_COUNTER,
-} opt_types_t;
+#include "optparam.h"
 
 typedef struct {
     String          name;
@@ -37,7 +22,8 @@ typedef struct {
     opt_types_t     type;
     bool            req;
     bool            present;
-    void            *param;
+    bool            multiple;
+    params_vector_t params;
 } opt_t;
 
 typedef enum {
@@ -47,7 +33,26 @@ typedef enum {
     ARG_NO,
 } arg_type_t;
 
-typedef WCValOrderedVector<opt_t *> opt_vector_t;
+typedef WCValOrderedVector<opt_t *> opt_vector_t ;
+
+class OptParser_Ex {
+    public:
+        OptParser_Ex(String error) {
+            this->error = error;
+        }
+
+        String what() {
+            return this->error;
+        }
+
+        const char *what_c() {
+            return (const char *) this->error;
+        }
+
+    private:
+        String error;
+
+};
 
 class OptParser {
     public:
@@ -55,21 +60,20 @@ class OptParser {
         ~OptParser();
         
         void            add(String opt_name, String opt_desc);
-        void            add(String opt_name, String opt_desc, opt_types_t opt_type, bool req = false);
+        void            add(String opt_name, String opt_desc, opt_types_t opt_type, bool req, bool multiple);
 
-        bool            find(String opt_name);
+        unsigned int    find(String opt_name);
         bool            parse(int argc, char **argv, bool help);
         void            print_help();
 
-        String          get_string(String opt_name);
-        int             get_int(String opt_name);
-        unsigned int    get_uint(String opt_name);
-        long int        get_long(String opt_name);
-        unsigned long   get_ulong(String opt_name);
-        float           get_float(String opt_name);
-        double          get_double(String opt_name);
-        bool            get_bool(String opt_name);
-        unsigned long   get_hex(String opt_name);
+        String          get_string(String opt_name, unsigned int index = 0);
+        int             get_int(String opt_name, unsigned int index = 0);
+        unsigned int    get_uint(String opt_name, unsigned int index = 0);
+        long int        get_long(String opt_name, unsigned int index = 0);
+        unsigned long   get_ulong(String opt_name, unsigned int index = 0);
+        float           get_float(String opt_name, unsigned int index = 0);
+        double          get_double(String opt_name, unsigned int index = 0);
+        unsigned long   get_hex(String opt_name, unsigned int index = 0);
         unsigned int    get_counter(String opt_name);
 
     private:
@@ -84,5 +88,17 @@ class OptParser {
         bool            is_double(const char *str);
         bool            is_negative_double(const char *str);
 
-        opt_t *         find_opt(String opt_name);
+        void            opt_add_param(opt_t *opt, void *param, opt_types_t type);
+        void            opt_add_param(opt_t *opt, String param);
+        void            opt_add_param(opt_t *opt, int param);
+        void            opt_add_param(opt_t *opt, unsigned int param);
+        void            opt_add_param(opt_t *opt, float param);
+        void            opt_add_param(opt_t *opt, double param);
+        void            opt_add_param(opt_t *opt, long param);
+        void            opt_add_param(opt_t *opt, unsigned long param);
+
+        opt_t *         opt_find(String opt_name);
+        void *          opt_find_param(opt_t *opt, unsigned int index);
 };
+
+#endif

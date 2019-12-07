@@ -1,6 +1,6 @@
 TARGET = qnx4opts
 SRCDIR = ./src/
-SRCS = re.cpp optparser.cpp main.cpp
+SRCS = re.cpp optparam.cpp optparser.cpp main.cpp
 BINDIR = ./bin/
 OBJDIR = ./obj/
 OBJS = $(SRCS:.cpp=.o)
@@ -8,7 +8,7 @@ CC = cc
 INCLUDEDIRS += ./inc
 LIBS = 
 
-CFLAGS = -Oentx -ms -s -w2 -5 \
+CFLAGS = -Oentx -ms -WC,-xss -s -w2 -5 \
 						$(addprefix -I, $(INCLUDEDIRS))
 LDFLAGS = -M \
 						$(addprefix -l, $(LIBS))

@@ -19,42 +19,12 @@ OptParser::OptParser(String app_name, String app_desc) {
 
 OptParser::~OptParser() {
     for (int i = 0; i < opt_list.entries(); ++i) {
-        if (opt_list[i]->param != NULL) {
-            switch(opt_list[i]->type) {
-                case OPT_STRING: {
-                    delete (String *) opt_list[i]->param;
-                    break;
-                }
-                case OPT_INT: {
-                    delete (int *) opt_list[i]->param;
-                    break;
-                }
-                case OPT_UINT: {
-                    delete (unsigned int *) opt_list[i]->param;
-                    break;
-                }
-                case OPT_LONG: {
-                    delete (long int *) opt_list[i]->param;
-                    break;
-                }
-                case OPT_ULONG: {
-                    delete (unsigned long *) opt_list[i]->param;
-                    break;
-                }
-                case OPT_FLOAT: {
-                    delete (float *) opt_list[i]->param;
-                    break;
-                }
-                case OPT_DOUBLE: {
-                    delete (double *) opt_list[i]->param;
-                    break;
-                }
-                case OPT_HEX: {
-                    delete (unsigned long *) opt_list[i]->param;
-                    break;
-                }
-            }
+        for (int j = 0; j < opt_list[i]->params.entries(); ++j) {
+            delete opt_list[i]->params[j];
         }
+
+        opt_list[i]->params.clear();
+
         delete opt_list[i];
     }
 
@@ -62,6 +32,10 @@ OptParser::~OptParser() {
 }
 
 void OptParser::add(String opt_name, String opt_desc) {
+    if (opt_name.length() == 0) {
+        throw OptParser_Ex("Option name couldn't be empty");
+    }
+
     opt_t *opt = new opt_t;
 
     int sep = opt_name.index(",");
@@ -83,17 +57,37 @@ void OptParser::add(String opt_name, String opt_desc) {
     opt->type       = OPT_BOOL;
     opt->req        = false;
     opt->present    = false;
-    opt->param      = NULL;
+    opt->multiple   = false;
+
+    for (unsigned int i = 0; i < this->opt_list.entries(); ++i) {
+        opt_t *e_opt = this->opt_list[i];
+
+        if (opt->name.length() != 0 && e_opt->name == opt->name) {
+            throw OptParser_Ex("Option already exists");            
+        }
+
+        if (opt->name_long.length() != 0 && e_opt->name_long == opt->name_long) {
+            throw OptParser_Ex("Option already exists");            
+        }
+    }
 
     this->opt_list.append(opt);
 }
 
-void OptParser::add(String opt_name, String opt_desc, opt_types_t opt_type, bool req) {
+void OptParser::add(String opt_name, String opt_desc, opt_types_t opt_type, bool req, bool multiple) {
+    if (opt_name.length() == 0) {
+        throw OptParser_Ex("Option name couldn't be empty");
+    }
+
     opt_t *opt = new opt_t;
 
     int sep = opt_name.index(",");
 
     if (opt_type == OPT_COUNTER) {
+        if (opt_name.length() != 1) {
+            throw OptParser_Ex("Option name length must be 1 for OPT_COUNTER type");
+        }
+
         opt->name       = opt_name[0];
         opt->name_long  = "";
     } else {
@@ -115,7 +109,21 @@ void OptParser::add(String opt_name, String opt_desc, opt_types_t opt_type, bool
     opt->type       = opt_type;
     opt->req        = req;
     opt->present    = false;
-    opt->param      = NULL;
+    opt->multiple   = multiple;
+
+    bool is_found = false;
+
+    for (unsigned int i = 0; i < this->opt_list.entries(); ++i) {
+        opt_t *e_opt = this->opt_list[i];
+
+        if (opt->name.length() != 0 && e_opt->name == opt->name) {
+            throw OptParser_Ex("Option already exists");            
+        }
+
+        if (opt->name_long.length() != 0 && e_opt->name_long == opt->name_long) {
+            throw OptParser_Ex("Option already exists");            
+        }
+    }
 
     this->opt_list.append(opt);
 }
@@ -181,7 +189,21 @@ bool OptParser::parse(int argc, char **argv, bool help) {
     unsigned int i;
 
     if (argc < 2) {
-        return true;
+        bool is_req = false;
+
+        for (i = 0; i < this->opt_list.entries(); ++i) {
+            opt_t *opt = this->opt_list[i];
+
+            if (opt->req) {
+                is_req = true;
+            }
+        }
+
+        if (is_req) {
+            goto on_help;
+        } else {
+            return true;
+        }
     }
 
     while (argi != argc) {
@@ -253,7 +275,7 @@ bool OptParser::parse(int argc, char **argv, bool help) {
                         continue;
                     }
 
-                    if (opt->present) {
+                    if (opt->present && !opt->multiple) {
                         goto on_help;
                     }
 
@@ -269,7 +291,7 @@ bool OptParser::parse(int argc, char **argv, bool help) {
                         continue;
                     }
 
-                    if (opt->present) {
+                    if (opt->present && !opt->multiple) {
                         goto on_help;
                     }
 
@@ -299,13 +321,14 @@ bool OptParser::parse(int argc, char **argv, bool help) {
 
                     opt->present = true;
 
-                    opt->param = new unsigned int;
-                    *(unsigned int *) opt->param = param.length() + 1;
+                    unsigned int raw_param = param.length() + 1;
+
+                    opt_add_param(opt, raw_param);
 
                     break;
                 }
                 case OPT_STRING: {
-                    opt->param = new String(param);
+                    opt_add_param(opt, param);
 
                     break;
                 }
@@ -316,8 +339,7 @@ bool OptParser::parse(int argc, char **argv, bool help) {
 
                     int raw_param = atoi((const char *) param);
 
-                    opt->param = new int;
-                    memcpy(opt->param, &raw_param, sizeof(int));
+                    opt_add_param(opt, raw_param);
 
                     break;
                 }
@@ -328,8 +350,7 @@ bool OptParser::parse(int argc, char **argv, bool help) {
 
                     unsigned int raw_param = strtoul((const char *) param, NULL, 10);
 
-                    opt->param = new unsigned int;
-                    memcpy(opt->param, &raw_param, sizeof(unsigned int));
+                    opt_add_param(opt, raw_param);
 
                     break;
                 }
@@ -340,8 +361,7 @@ bool OptParser::parse(int argc, char **argv, bool help) {
 
                     long int raw_param = strtol((const char *) param, NULL, 10);
 
-                    opt->param = new long int;
-                    memcpy(opt->param, &raw_param, sizeof(long int));
+                    opt_add_param(opt, raw_param);
 
                     break;
                 }
@@ -352,16 +372,14 @@ bool OptParser::parse(int argc, char **argv, bool help) {
 
                     unsigned long raw_param = strtoul((const char *) param, NULL, 10);
 
-                    opt->param = new unsigned long;
-                    memcpy(opt->param, &raw_param, sizeof(unsigned long));
+                    opt_add_param(opt, raw_param);
 
                     break;
                 }
                 case OPT_FLOAT: {
                     float raw_param = atof((const char *) param);
 
-                    opt->param = new float;
-                    memcpy(opt->param, &raw_param, sizeof(float));
+                    opt_add_param(opt, raw_param);
 
                     break;
                 }
@@ -372,16 +390,14 @@ bool OptParser::parse(int argc, char **argv, bool help) {
 
                     double raw_param = strtod((const char *) param, NULL);
 
-                    opt->param = new double;
-                    memcpy(opt->param, &raw_param, sizeof(double));
+                    opt_add_param(opt, raw_param);
 
                     break;
                 }
                 case OPT_HEX: {
                     unsigned long raw_param = strtoul((const char *) param, NULL, 16);
 
-                    opt->param = new unsigned long;
-                    memcpy(opt->param, &raw_param, sizeof(unsigned long));
+                    opt_add_param(opt, raw_param);
 
                     break;
                 }
@@ -411,22 +427,32 @@ on_help:
     return false;
 }
 
-bool OptParser::find(String opt_name) {
+unsigned int OptParser::find(String opt_name) {
     for (unsigned int i = 0; i < this->opt_list.entries(); ++i) {
         opt_t *opt = this->opt_list[i];
 
         if (opt_name.length() > 1) {
             if (opt->name_long == opt_name && opt->present) {
-                return true;
+
+                if (opt->type == OPT_BOOL) {
+                    return 1;
+                }
+
+                return opt->params.entries();
             }
         } else {
             if (opt->name == opt_name && opt->present) {
-                return true;
-            }   
+
+                if (opt->type == OPT_BOOL) {
+                    return 1;
+                }
+
+                return opt->params.entries();
+            }
         }
     }
 
-    return false;
+    return 0;
 }
 
 void OptParser::print_help() {
@@ -527,7 +553,7 @@ void OptParser::print_help() {
     }
 }
 
-opt_t *OptParser::find_opt(String opt_name) {
+opt_t *OptParser::opt_find(String opt_name) {
     for (unsigned int i = 0; i < this->opt_list.entries(); ++i) {
         opt_t *opt = this->opt_list[i];
 
@@ -538,108 +564,166 @@ opt_t *OptParser::find_opt(String opt_name) {
         } else {
             if (opt->name == opt_name && opt->present) {
                 return opt;
-            }   
+            }
         }
     }
 
-    return NULL;
+    throw OptParser_Ex("Couldn't find option");
 }
 
-String OptParser::get_string(String opt_name) {
-    opt_t *opt = find_opt(opt_name);
+void *OptParser::opt_find_param(opt_t *opt, unsigned int index) {
+    if (index >= opt->params.entries()) {
+        throw OptParser_Ex("Index out of range");
+    }
+
+    return opt->params[index]->get_data();
+}
+
+void OptParser::opt_add_param(opt_t *opt, void *data, opt_types_t type) {
+    OptParam *param = new OptParam(data, type);
+
+    opt->params.append(param);
+}
+
+void OptParser::opt_add_param(opt_t *opt, String data) {
+    String *str = new String(data);
+
+    opt_add_param(opt, (void *)str, OPT_STRING);
+}
+
+void OptParser::opt_add_param(opt_t *opt, int data) {
+    int *i = new int;
+
+    *i = data;
+
+    opt_add_param(opt, (void *)i, OPT_INT);
+}
+
+void OptParser::opt_add_param(opt_t *opt, unsigned int data) {
+    unsigned int *ui = new unsigned int;
+
+    *ui = data;
+
+    opt_add_param(opt, (void *)ui, OPT_UINT);
+}
+
+void OptParser::opt_add_param(opt_t *opt, float data) {
+    float *f = new float;
+
+    *f = data;
+
+    opt_add_param(opt, (void *)f, OPT_FLOAT);
+}
+
+void OptParser::opt_add_param(opt_t *opt, double data) {
+    double *d = new double;
+
+    *d = data;
+
+    opt_add_param(opt, (void *)d, OPT_DOUBLE);
+}
+
+void OptParser::opt_add_param(opt_t *opt, long data) {
+    long *l = new long;
+
+    *l = data;
+
+    opt_add_param(opt, (void *)l, OPT_LONG);
+}
+
+void OptParser::opt_add_param(opt_t *opt, unsigned long data) {
+    unsigned long *ul = new unsigned long;
+
+    *ul = data;
+
+    opt_add_param(opt, (void *)ul, OPT_ULONG);
+}
+
+String OptParser::get_string(String opt_name, unsigned int index) {
+    opt_t *opt = opt_find(opt_name);
 
     if (opt != NULL && opt->present && opt->type == OPT_STRING) {
-        return *(String *)opt->param;
+        return *(String *) opt_find_param(opt, index);
     } else {
         return "";
     }
 }
 
-int OptParser::get_int(String opt_name) {
-    opt_t *opt = find_opt(opt_name);
+int OptParser::get_int(String opt_name, unsigned int index) {
+    opt_t *opt = opt_find(opt_name);
 
     if (opt != NULL && opt->present && opt->type == OPT_INT) {
-        return *(int *)opt->param;
+        return *(int *) opt_find_param(opt, index);
     } else {
         return 0;
     }
 }
 
-unsigned int OptParser::get_uint(String opt_name) {
-    opt_t *opt = find_opt(opt_name);
+unsigned int OptParser::get_uint(String opt_name, unsigned int index) {
+    opt_t *opt = opt_find(opt_name);
 
     if (opt != NULL && opt->present && opt->type == OPT_UINT) {
-        return *(unsigned int *) opt->param;
+        return *(unsigned int *) opt_find_param(opt, index);
     } else {
         return 0;
     }
 }
 
-long int OptParser::get_long(String opt_name) {
-    opt_t *opt = find_opt(opt_name);
+long int OptParser::get_long(String opt_name, unsigned int index) {
+    opt_t *opt = opt_find(opt_name);
 
     if (opt != NULL && opt->present && opt->type == OPT_LONG) {
-        return *(long int *) opt->param;
+        return *(long int *) opt_find_param(opt, index);
     } else {
         return 0;
     }
 }
 
-unsigned long OptParser::get_ulong(String opt_name) {
-    opt_t *opt = find_opt(opt_name);
+unsigned long OptParser::get_ulong(String opt_name, unsigned int index) {
+    opt_t *opt = opt_find(opt_name);
 
     if (opt != NULL && opt->present && opt->type == OPT_ULONG) {
-        return *(unsigned long *) opt->param;
+        return *(unsigned long *) opt_find_param(opt, index);
     } else {
         return 0;
     }
 }
 
-float OptParser::get_float(String opt_name) {
-    opt_t *opt = find_opt(opt_name);
+float OptParser::get_float(String opt_name, unsigned int index) {
+    opt_t *opt = opt_find(opt_name);
 
     if (opt != NULL && opt->present && opt->type == OPT_FLOAT) {
-        return *(float *)opt->param;
+        return *(float *) opt_find_param(opt, index);
     } else {
         return 0;
     }
 }
 
-double OptParser::get_double(String opt_name) {
-    opt_t *opt = find_opt(opt_name);
+double OptParser::get_double(String opt_name, unsigned int index) {
+    opt_t *opt = opt_find(opt_name);
 
     if (opt != NULL && opt->present && opt->type == OPT_DOUBLE) {
-        return *(double *) opt->param;
+        return *(double *) opt_find_param(opt, index);
     } else {
         return 0;
     }
 }
 
-bool OptParser::get_bool(String opt_name) {
-    opt_t *opt = find_opt(opt_name);
-
-    if (opt != NULL && opt->present && opt->type == OPT_BOOL) {
-        return true;
-    } else {
-        return false;
-    }
-}
-
-unsigned long OptParser::get_hex(String opt_name) {
-    opt_t *opt = find_opt(opt_name);
+unsigned long OptParser::get_hex(String opt_name, unsigned int index) {
+    opt_t *opt = opt_find(opt_name);
 
     if (opt != NULL && opt->present && opt->type == OPT_HEX) {
-        return *(unsigned long *) opt->param;
+        return *(unsigned long *) opt_find_param(opt, index);
     } else {
         return 0x00;
     }
 }
 
 unsigned int OptParser::get_counter(String opt_name) {
-    opt_t *opt = find_opt(opt_name);
+    opt_t *opt = opt_find(opt_name);
 
     if (opt != NULL && opt->present && opt->type == OPT_COUNTER) {
-        return *(unsigned int *) opt->param;
+        return *(unsigned int *) opt_find_param(opt, 0);
     } else {
         return 0;
     }
