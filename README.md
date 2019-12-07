@@ -5,7 +5,7 @@
 
 ```C++
 void add(String opt_name, String opt_desc);
-void add(String opt_name, String opt_desc, opt_types_t opt_type, bool req = false);
+void add(String opt_name, String opt_desc, opt_types_t opt_type, bool req, bool multiple);
 ```
 Добавить параметр
 
@@ -16,7 +16,7 @@ void add(String opt_name, String opt_desc, opt_types_t opt_type, bool req = fals
 Описание параметра
 
 `opt_types_t opt_type`
-Тип аргумента. Возможные варианты:
+Тип параметра. Возможные варианты:
 ```C++
 typedef enum {
     OPT_BOOL, //Параметр без аргумента, просто определяется его наличие
@@ -34,6 +34,10 @@ typedef enum {
 
 `bool req`
 Обязателен параметр или нет
+
+`bool multiple`
+Можно ли принять несколько параметров с одинаковым именем
+
 ***
 ```C++
 bool parse(int argc, char **argv, bool help);
@@ -43,12 +47,13 @@ bool parse(int argc, char **argv, bool help);
 Думаю, про argc и argv нет смысла объяснять.
 
 `bool help`
-Вывод справки при отсутствии необходимы аргументов
+Вывод справки при отсутствии необходимых параметров
 ***
 ```C++  
-bool find(String opt_name);
+int find(String opt_name);
 ```
-Найти параметр
+Найти параметр. 
+Возвращает количество параметров.
 ***
 ```C++
 void print_help();
@@ -56,82 +61,125 @@ void print_help();
 Вывести справку
 ***
 ```C++
-String          get_string(String opt_name);
-int             get_int(String opt_name);
-unsigned int    get_uint(String opt_name);
-long int        get_long(String opt_name);
-unsigned long   get_ulong(String opt_name);
-float           get_float(String opt_name);
-double          get_double(String opt_name);
-bool            get_bool(String opt_name);
-unsigned long   get_hex(String opt_name);
+String          get_string(String opt_name, unsigned int index = 0);
+int             get_int(String opt_name, unsigned int index = 0);
+unsigned int    get_uint(String opt_name, unsigned int index = 0);
+long int        get_long(String opt_name, unsigned int index = 0);
+unsigned long   get_ulong(String opt_name, unsigned int index = 0);
+float           get_float(String opt_name, unsigned int index = 0);
+double          get_double(String opt_name, unsigned int index = 0);
+unsigned long   get_hex(String opt_name, unsigned int index = 0);
 unsigned int    get_counter(String opt_name);
 ```
-Получить значение аргумента
+Получить значение параметра.
 
 ## Пример
 
 ```C++
+/*
+ * Copyright © 2019 Roman Serov
+ * This work is free-> You can redistribute it and/or modify it under the
+ * terms of the Do What The Fuck You Want To Public License, Version 2,
+ * as published by Sam Hocevar-> See the COPYING file or http://www->wtfpl->net/ 
+ * for more details->
+*/
+
 #include "optparser.h"
 #include <stdio.h>
 
 int main(int argc, char **argv) {
     //Конструктор принимает в качестве параметров имя исполняемого файла и описание программы
-    OptParser opt(argv[0], "Options parser");
+    OptParser *opt = new OptParser(argv[0], "Options parser");
 
-    //Параметр -t без аргументов (OPT_BOOL)
-    opt.add("t",        "Without args");
-    //Параметр --test без аргументов (OPT_BOOL)
-    opt.add("test",     "Without args");
-    //Параметр -h (длинное имя --help) без аргументов
-    opt.add("h,help",   "Help");
-    //Параметр -i(--int) с аргументом типа integer, обязательный
-    opt.add("i,int",    "Integer",      OPT_INT,    true);
-    //Параметр -f(--float) с аргументом типа float, обязательный
-    opt.add("f,float",  "Float",        OPT_FLOAT,  true);
-    //Параметр -s(--string) с аргументом типа string, обязательный
-    opt.add("s,string", "String",       OPT_STRING, true);
-    //Параметр -h(--hex) с аргументом типа hex (преобразуется в unsigned long), не обязательный
-    opt.add("e,hex",    "Hex",          OPT_HEX,    false);
-    //Параметр -v счётчик (считает количество v)
-    opt.add("v",        "Verbose test", OPT_COUNTER);
+    try {
+        //Параметр -t без аргументов
+        opt->add("t",           "Without args");
+        //Параметр --test без аргументов
+        opt->add("test",        "Without args");
+        //Параметр -h (длинное имя --help) без аргументов
+        opt->add("h,help",      "Help");
+        //Параметр -i(--int) с аргументом типа integer, обязательный
+        opt->add("i,int",       "Integer",          OPT_INT,    true, false);
+        //Параметр -f(--float) с аргументом типа float, обязательный
+        opt->add("f,float",     "Float",            OPT_FLOAT,  false, false);
+        //Параметр -s(--string) с аргументом типа string, обязательный
+        opt->add("s,string",    "String",           OPT_STRING, false, true);
+        //Параметр -h(--hex) с аргументом типа hex (преобразуется в unsigned long), не обязательный
+        opt->add("e,hex",       "Hex",              OPT_HEX,    false, false);
+        //Параметр -l(--long) с аргументом типа long, не обязательный
+        opt->add("l,long",      "Long",             OPT_LONG,   false, false);
+        //Параметр -u(--unsigned) с аргументом типа unsigned int, не обязательный
+        opt->add("u,unsigned",  "Unsigned int",     OPT_UINT,   false, false);
+        //Параметр -m(--ulong) с аргументом типа unsigned long, не обязательный
+        opt->add("m,ulong",     "Unsigned long",    OPT_ULONG,  false, false);
+        //Параметр -b(--double) с аргументом типа double, не обязательный
+        opt->add("b,double",    "Double",           OPT_DOUBLE, false, false);
+        //Параметр -v счётчик (считает количество v)
+        opt->add("v",           "Verbose test",     OPT_COUNTER, false, true);
 
-    if (!opt.parse(argc, argv, true)) {
-        return 0;
+        if (!opt->parse(argc, argv, true)) {
+            delete opt;
+            return 0;
+        }
+
+        if (opt->find("h")) {
+            opt->print_help();
+            delete opt;
+            return 0;
+        }
+
+        if (opt->find("t")) {
+            printf("t is present!\n");
+        }
+
+        if (opt->find("test")) {
+            printf("Test is present!\n");
+        }
+
+        if (opt->find("int")) {
+            printf("int = %d\n", opt->get_int("int"));
+        }
+
+        if (opt->find("unsigned")) {
+            printf("Unsigned int = %u\n", opt->get_uint("unsigned"));
+        }
+
+        if (opt->find("float")) {
+            printf("float = %f\n", opt->get_float("float"));
+        }
+
+        unsigned int str_cnt;
+
+        if (str_cnt = opt->find("string")) {
+            for (unsigned int i = 0; i < str_cnt; ++i) {
+                printf("string = %s\n", (const char *) opt->get_string("string", i));
+            }
+        }
+
+        if (opt->find("hex")) {
+            printf("hex = 0x%X\n", opt->get_hex("hex"));
+        }
+
+        if (opt->find("long")) {
+            printf("Long = %ld\n", opt->get_long("long"));
+        }
+
+        if (opt->find("ulong")) {
+            printf("Unsigned long = %lu\n", opt->get_ulong("ulong"));
+        }
+
+        if (opt->find("double")) {
+            printf("Double = %f\n", opt->get_double("double"));
+        }
+
+        if (opt->find("v")) {
+            printf("Verbose level: %d\n", opt->get_counter("v"));
+        }
+    } catch (OptParser_Ex e) {
+        printf("%s\n", e.what_c());
     }
 
-    if (opt.find("h")) {
-        opt.print_help();
-        return 0;
-    }
-
-    if (opt.find("t")) {
-        printf("t is present!\n");
-    }
-
-    if (opt.find("test")) {
-        printf("Test is present!\n");
-    }
-
-    if (opt.find("int")) {
-        printf("int = %d\n", opt.get_int("int"));
-    }
-
-    if (opt.find("float")) {
-        printf("float = %f\n", opt.get_float("float"));
-    }
-
-    if (opt.find("string")) {
-        printf("string = %s\n", (const char *) opt.get_string("string"));
-    }
-
-    if (opt.find("hex")) {
-        printf("hex = 0x%X\n", opt.get_hex("hex"));
-    }
-
-    if (opt.find("v")) {
-        printf("Verbose level: %d\n", opt.get_counter("v"));
-    }
+    delete opt;
 
     return 0;
 }
@@ -139,25 +187,37 @@ int main(int argc, char **argv) {
 ```
 Пример вывода:
 ```
-# ./bin/optparser -i 1 --float 3.14 -s "Hello World" -e 0xAA55 -b --test -vvv      
+# ./bin/optparser -t --test -i 1 -f=-3.14 -s hello -s world -s lalala -s kot -e 0xaa55 -l=-1 -u 5 -m 4 -b 3.44 -vvvvvv
+t is present!
 Test is present!
 int = 1
-float = 3.140000
-string = Hello World
+Unsigned int = 5
+float = -3.140000
+string = hello
+string = world
+string = lalala
+string = kot
 hex = 0xAA55
-Verbose level: 3
+Long = -1
+Unsigned long = 4
+Double = 3.440000
+Verbose level: 6
 ```
 Пример вывода справки:
 ```
-# ./bin/optparser -h
-./bin/optparser - Options parser
+# ./bin/qnx4opts -h
+./qnx4opts - Options parser
 
-        -t                              Without args
-        --test                          Without args
-        -h        --help                Help
-        -i        --int                 Integer
-        -f        --float               Float
-        -s        --string              String
-        -e        --hex                 Hex
-        -v                              Verbose test
+  -t                       - Without args
+  --test                   - Without args
+  -h, --help               - Help
+  -i, --int       <int>    - Integer
+  -f, --float     <float>  - Float
+  -s, --string    <string> - String
+  -e, --hex       <hex>    - Hex
+  -l, --long      <long>   - Long
+  -u, --unsigned  <uint>   - Unsigned int
+  -m, --ulong     <ulong>  - Unsigned long
+  -b, --double    <double> - Double
+  -v                       - Verbose test
 ```
