@@ -8,7 +8,7 @@ local:
   project_files:
     - Makefile
 remote:
-  host: "qnx4work"
+  host: "qnx4vm"
   projects_path: "/root/projects"
 build:
   cmd_pre: ""
