@@ -27,11 +27,11 @@ typedef struct {
 } opt_t;
 
 typedef enum {
-    ARG_SHORT,
-    ARG_LONG,
-    ARG_SHORTWPARAM,
-    ARG_NO,
-} arg_type_t;
+    OPT_RAW_SHORT,
+    OPT_RAW_LONG,
+    OPT_RAW_SHORTWPARAM,
+    OPT_RAW_NO,
+} opt_raw_type_t;
 
 typedef WCValOrderedVector<opt_t *> opt_vector_t ;
 
@@ -82,7 +82,7 @@ class OptParser {
         opt_vector_t    opt_list;
 
         int             find_eq(const char *str);
-        arg_type_t      is_arg(const char *str);
+        opt_raw_type_t  opt_raw_type(const char *str);
         bool            is_negatvie_decimal(const char *str);
         bool            is_decimal(const char *str);
         bool            is_double(const char *str);

@@ -128,32 +128,32 @@ void OptParser::add(String opt_name, String opt_desc, opt_types_t opt_type, bool
     this->opt_list.append(opt);
 }
 
-arg_type_t OptParser::is_arg(const char *str) {
+opt_raw_type_t OptParser::opt_raw_type(const char *str) {
     int index = re_match("^-[^-]$", str);
 
     if (index != -1) {
-        return ARG_SHORT;
+        return OPT_RAW_SHORT;
     }
 
     index = re_match("^-[^-]\\=.+$", str);
 
     if (index != -1) {
-        return ARG_SHORT;
+        return OPT_RAW_SHORT;
     }
 
     index = re_match("^-[^-].+$", str);
 
     if (index != -1) {
-        return ARG_SHORTWPARAM;
+        return OPT_RAW_SHORTWPARAM;
     }
 
     index = re_match("^--.+$", str);
 
     if (index != -1) {
-        return ARG_LONG;
+        return OPT_RAW_LONG;
     }
 
-    return ARG_NO;
+    return OPT_RAW_NO;
 }
 
 int OptParser::find_eq(const char *str) {
@@ -210,14 +210,14 @@ bool OptParser::parse(int argc, char **argv, bool help) {
         String      val(argv[argi]);
         String      name;
         String      param;
-        arg_type_t  type = is_arg(argv[argi]);
+        opt_raw_type_t  type = opt_raw_type(argv[argi]);
 
         switch(type) {
-            case ARG_SHORT: {
+            case OPT_RAW_SHORT: {
                 name = String(val, 1, 1);
 
                 if (argi + 1 != argc) {
-                    if (is_arg(argv[argi + 1]) == ARG_NO) {
+                    if (opt_raw_type(argv[argi + 1]) == OPT_RAW_NO) {
                         param = String(argv[argi + 1]);
                     }
                 }
@@ -230,17 +230,17 @@ bool OptParser::parse(int argc, char **argv, bool help) {
 
                 break;
             }
-            case ARG_SHORTWPARAM: {
+            case OPT_RAW_SHORTWPARAM: {
                 name = String(val, 1, 1);
                 param = String(val, 2);
 
                 break;
             }
-            case ARG_LONG: {
+            case OPT_RAW_LONG: {
                 name = String(val, 2);
 
                 if (argi + 1 != argc) {
-                    if (is_arg(argv[argi + 1]) == ARG_NO) {
+                    if (opt_raw_type(argv[argi + 1]) == OPT_RAW_NO) {
                         param = String(argv[argi + 1]);
                     }
                 }
@@ -264,8 +264,8 @@ bool OptParser::parse(int argc, char **argv, bool help) {
             opt_t *opt = this->opt_list[i];
 
             switch(type) {
-                case ARG_SHORT:
-                case ARG_SHORTWPARAM: {
+                case OPT_RAW_SHORT:
+                case OPT_RAW_SHORTWPARAM: {
                     if (opt->name != name) {
                         continue;
                     }
@@ -281,7 +281,7 @@ bool OptParser::parse(int argc, char **argv, bool help) {
 
                     break;
                 }
-                case ARG_LONG: {
+                case OPT_RAW_LONG: {
                     if (opt->name_long != name) {
                         continue;
                     }
