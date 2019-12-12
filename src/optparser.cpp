@@ -160,7 +160,7 @@ int OptParser::find_eq(const char *str) {
     return re_match("\\=", str) + 1;
 }
 
-bool OptParser::is_negatvie_decimal(const char *str) {
+bool OptParser::is_negative_decimal(const char *str) {
     int index = re_match("^-\\d+$", str);
 
     return index + 1;
@@ -333,7 +333,7 @@ bool OptParser::parse(int argc, char **argv, bool help) {
                     break;
                 }
                 case OPT_INT: {
-                    if ((!is_negatvie_decimal(param)) && (!is_decimal(param))) {
+                    if ((!is_negative_decimal(param)) && (!is_decimal(param))) {
                         goto on_help;
                     }
 
@@ -344,7 +344,7 @@ bool OptParser::parse(int argc, char **argv, bool help) {
                     break;
                 }
                 case OPT_UINT: {
-                    if (is_negatvie_decimal(param) || !is_decimal(param)) {
+                    if (is_negative_decimal(param) || !is_decimal(param)) {
                         goto on_help;
                     }
 
@@ -355,7 +355,7 @@ bool OptParser::parse(int argc, char **argv, bool help) {
                     break;
                 }
                 case OPT_LONG: {
-                    if ((!is_negatvie_decimal(param)) && (!is_decimal(param))) {
+                    if ((!is_negative_decimal(param)) && (!is_decimal(param))) {
                         goto on_help;
                     }
 
@@ -366,7 +366,7 @@ bool OptParser::parse(int argc, char **argv, bool help) {
                     break;
                 }
                 case OPT_ULONG: {
-                    if (is_negatvie_decimal(param) || !is_decimal(param)) {
+                    if (is_negative_decimal(param) || !is_decimal(param)) {
                         goto on_help;
                     }
 
@@ -377,6 +377,10 @@ bool OptParser::parse(int argc, char **argv, bool help) {
                     break;
                 }
                 case OPT_FLOAT: {
+                    if (!is_double(param) && !is_negative_double(param) && !is_decimal(param) && !is_negative_decimal(param)) {
+                        goto on_help;
+                    }
+
                     float raw_param = atof((const char *) param);
 
                     opt_add_param(opt, raw_param);
@@ -384,7 +388,7 @@ bool OptParser::parse(int argc, char **argv, bool help) {
                     break;
                 }
                 case OPT_DOUBLE: {
-                    if (!is_double(param) && !is_negative_double(param) && !is_decimal(param) && !is_negatvie_decimal(param)) {
+                    if (!is_double(param) && !is_negative_double(param) && !is_decimal(param) && !is_negative_decimal(param)) {
                         goto on_help;
                     }
 

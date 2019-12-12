@@ -83,7 +83,7 @@ class OptParser {
 
         int             find_eq(const char *str);
         opt_raw_type_t  opt_raw_type(const char *str);
-        bool            is_negatvie_decimal(const char *str);
+        bool            is_negative_decimal(const char *str);
         bool            is_decimal(const char *str);
         bool            is_double(const char *str);
         bool            is_negative_double(const char *str);
