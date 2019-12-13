@@ -47,6 +47,13 @@ OptParam::~OptParam() {
             delete (unsigned long *) this->data;
             break;
         }
+        case OPT_COUNTER: {
+            delete (unsigned int *) this->data;
+            break;
+        }
+        case OPT_BOOL: {
+            break;
+        }
     }
 }
 

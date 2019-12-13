@@ -405,6 +405,9 @@ bool OptParser::parse(int argc, char **argv, bool help) {
 
                     break;
                 }
+                case OPT_BOOL: {
+                    break;
+                }
             }
 
             opt->present = true;
