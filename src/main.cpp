@@ -21,7 +21,7 @@ int main(int argc, char **argv) {
         //Параметр -h (длинное имя --help) без аргументов
         opt->add("h,help",      "Help");
         //Параметр -i(--int) с аргументом типа integer, обязательный
-        opt->add("i,int",       "Integer",          OPT_INT,    false, false);
+        opt->add("i,int",       "Integer",          OPT_INT,    true, false);
         //Параметр -f(--float) с аргументом типа float, не обязательный
         opt->add("f,float",     "Float",            OPT_FLOAT,  false, false);
         //Параметр -s(--string) с аргументом типа string, не обязательный, возможно иметь несколько одинаковых
