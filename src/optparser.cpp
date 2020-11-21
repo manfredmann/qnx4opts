@@ -207,9 +207,9 @@ bool OptParser::parse(int argc, char **argv, bool help) {
     }
 
     while (argi != argc) {
-        String      val(argv[argi]);
-        String      name;
-        String      param;
+        String          val(argv[argi]);
+        String          name;
+        String          param;
         opt_raw_type_t  type = opt_raw_type(argv[argi]);
 
         switch(type) {
@@ -219,6 +219,8 @@ bool OptParser::parse(int argc, char **argv, bool help) {
                 if (argi + 1 != argc) {
                     if (opt_raw_type(argv[argi + 1]) == OPT_RAW_NO) {
                         param = String(argv[argi + 1]);
+
+                        ++argi;
                     }
                 }
 
@@ -242,6 +244,8 @@ bool OptParser::parse(int argc, char **argv, bool help) {
                 if (argi + 1 != argc) {
                     if (opt_raw_type(argv[argi + 1]) == OPT_RAW_NO) {
                         param = String(argv[argi + 1]);
+
+                        ++argi;
                     }
                 }
 
@@ -254,7 +258,9 @@ bool OptParser::parse(int argc, char **argv, bool help) {
 
                 break;
             }
+            case OPT_RAW_NO:
             default: {
+                opt_untyped.insert(val);
                 ++argi;
                 continue;
             }
@@ -272,6 +278,11 @@ bool OptParser::parse(int argc, char **argv, bool help) {
 
                     if (opt->type == OPT_BOOL) {
                         opt->present = true;
+
+                        if (param.length() != 0) {
+                            opt_untyped.insert(param);
+                        }
+
                         continue;
                     }
 
@@ -288,6 +299,11 @@ bool OptParser::parse(int argc, char **argv, bool help) {
 
                     if (opt->type == OPT_BOOL) {
                         opt->present = true;
+
+                        if (param.length() != 0) {
+                            opt_untyped.insert(param);
+                        }
+
                         continue;
                     }
 
@@ -406,6 +422,7 @@ bool OptParser::parse(int argc, char **argv, bool help) {
                     break;
                 }
                 case OPT_BOOL: {
+
                     break;
                 }
             }
@@ -734,4 +751,16 @@ unsigned int OptParser::get_counter(String opt_name) {
     } else {
         return 0;
     }
+}
+
+String OptParser::get_untyped(size_t index) {
+    if (index >= opt_untyped.entries()) {
+        throw OptParser_Ex("Index out of range");
+    }
+    
+    return opt_untyped[index];
+}
+
+size_t OptParser::get_untyped_count() {
+    return opt_untyped.entries();
 }

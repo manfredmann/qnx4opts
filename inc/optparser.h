@@ -34,6 +34,7 @@ typedef enum {
 } opt_raw_type_t;
 
 typedef WCValOrderedVector<opt_t *> opt_vector_t ;
+typedef WCValOrderedVector<String>  opt_untype_vector_t ;
 
 class OptParser_Ex {
     public:
@@ -66,20 +67,23 @@ class OptParser {
         bool            parse(int argc, char **argv, bool help);
         void            print_help();
 
-        String          get_string(String opt_name, unsigned int index = 0);
-        int             get_int(String opt_name, unsigned int index = 0);
-        unsigned int    get_uint(String opt_name, unsigned int index = 0);
-        long int        get_long(String opt_name, unsigned int index = 0);
-        unsigned long   get_ulong(String opt_name, unsigned int index = 0);
-        float           get_float(String opt_name, unsigned int index = 0);
-        double          get_double(String opt_name, unsigned int index = 0);
-        unsigned long   get_hex(String opt_name, unsigned int index = 0);
+        String          get_string(String opt_name, size_t index = 0);
+        int             get_int(String opt_name, size_t index = 0);
+        unsigned int    get_uint(String opt_name, size_t index = 0);
+        long int        get_long(String opt_name, size_t index = 0);
+        unsigned long   get_ulong(String opt_name, size_t index = 0);
+        float           get_float(String opt_name, size_t index = 0);
+        double          get_double(String opt_name, size_t index = 0);
+        unsigned long   get_hex(String opt_name, size_t index = 0);
         unsigned int    get_counter(String opt_name);
+        String          get_untyped(size_t index = 0);
+        size_t          get_untyped_count();
 
     private:
-        String          app_name;
-        String          app_desc;
-        opt_vector_t    opt_list;
+        String              app_name;
+        String              app_desc;
+        opt_vector_t        opt_list;
+        opt_untype_vector_t opt_untyped;
 
         int             find_eq(const char *str);
         opt_raw_type_t  opt_raw_type(const char *str);

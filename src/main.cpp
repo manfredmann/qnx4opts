@@ -21,7 +21,7 @@ int main(int argc, char **argv) {
         //Параметр -h (длинное имя --help) без аргументов
         opt->add("h,help",      "Help");
         //Параметр -i(--int) с аргументом типа integer, обязательный
-        opt->add("i,int",       "Integer",          OPT_INT,    true, false);
+        opt->add("i,int",       "Integer",          OPT_INT,    false, false);
         //Параметр -f(--float) с аргументом типа float, не обязательный
         opt->add("f,float",     "Float",            OPT_FLOAT,  false, false);
         //Параметр -s(--string) с аргументом типа string, не обязательный, возможно иметь несколько одинаковых
@@ -97,6 +97,13 @@ int main(int argc, char **argv) {
         if (opt->find("v")) {
             printf("Verbose level: %d\n", opt->get_counter("v"));
         }
+
+        size_t c = opt->get_untyped_count();
+
+        for (size_t i = 0; i < c; ++i) {
+            printf("Untyped: %s\n", (const char *) opt->get_untyped(i));
+        }
+
     } catch (OptParser_Ex e) {
         printf("%s\n", e.what_c());
     }
