@@ -1,5 +1,5 @@
 /*
- * Copyright © 2019 Roman Serov
+ * Copyright © 2019-2020 Roman Serov
  * This work is free. You can redistribute it and/or modify it under the
  * terms of the Do What The Fuck You Want To Public License, Version 2,
  * as published by Sam Hocevar. See the COPYING file or http://www.wtfpl.net/ 
@@ -76,8 +76,8 @@ class OptParser {
         double          get_double(String opt_name, size_t index = 0);
         unsigned long   get_hex(String opt_name, size_t index = 0);
         unsigned int    get_counter(String opt_name);
-        String          get_untyped(size_t index = 0);
         size_t          get_untyped_count();
+        String          get_untyped(size_t index = 0);
 
     private:
         String              app_name;

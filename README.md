@@ -61,15 +61,17 @@ void print_help();
 Вывести справку
 ***
 ```C++
-String          get_string(String opt_name, unsigned int index = 0);
-int             get_int(String opt_name, unsigned int index = 0);
-unsigned int    get_uint(String opt_name, unsigned int index = 0);
-long int        get_long(String opt_name, unsigned int index = 0);
-unsigned long   get_ulong(String opt_name, unsigned int index = 0);
-float           get_float(String opt_name, unsigned int index = 0);
-double          get_double(String opt_name, unsigned int index = 0);
-unsigned long   get_hex(String opt_name, unsigned int index = 0);
+String          get_string(String opt_name, size_t index = 0);
+int             get_int(String opt_name, size_t index = 0);
+unsigned int    get_uint(String opt_name, size_t index = 0);
+long int        get_long(String opt_name, size_t index = 0);
+unsigned long   get_ulong(String opt_name, size_t index = 0);
+float           get_float(String opt_name, size_t index = 0);
+double          get_double(String opt_name, size_t index = 0);
+unsigned long   get_hex(String opt_name, size_t index = 0);
 unsigned int    get_counter(String opt_name);
+size_t          get_untyped_count();
+String          get_untyped(size_t index = 0);
 ```
 Получить значение параметра.
 
