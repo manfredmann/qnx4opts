@@ -175,6 +175,13 @@ int main(int argc, char **argv) {
         if (opt->find("v")) {
             printf("Verbose level: %d\n", opt->get_counter("v"));
         }
+
+        size_t c = opt->get_untyped_count();
+
+        for (size_t i = 0; i < c; ++i) {
+            printf("Untyped: %s\n", (const char *) opt->get_untyped(i));
+        }
+
     } catch (OptParser_Ex e) {
         printf("%s\n", e.what_c());
     }
@@ -188,7 +195,7 @@ int main(int argc, char **argv) {
 ```
 Пример вывода:
 ```
-# ./bin/optparser -t --test -i 1 -f=-3.14 -s hello -s world -s lalala -s kot -e 0xaa55 -l=-1 -u 5 -m 4 -b 3.44 -vvvvvv
+./bin/qnx4opts -t --test -i 1 -f=-3.14 -s hello -s world -s lalala -s kot -e 0xaa55 -l=-1 -u 5 -m 4 -b 3.44 -vvvvvv azaza 100500
 t is present!
 Test is present!
 int = 1
@@ -203,8 +210,12 @@ Long = -1
 Unsigned long = 4
 Double = 3.440000
 Verbose level: 6
+Untyped: azaza
+Untyped: 100500
 ```
+
 Пример вывода справки:
+
 ```
 # ./bin/qnx4opts -h
 ./qnx4opts - Options parser

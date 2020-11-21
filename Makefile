@@ -9,19 +9,19 @@ INCLUDEDIRS += ./inc
 LIBS = 
 
 CFLAGS = -Oentx -ms -WC,-xss -s -w2 -5 \
-						$(addprefix -I, $(INCLUDEDIRS))
+							$(addprefix -I, $(INCLUDEDIRS))
 LDFLAGS = -M \
-						$(addprefix -l, $(LIBS))
+							$(addprefix -l, $(LIBS))
 
-.PHONY:     			all clean
+.PHONY:     	all clean
 
 all:					$(BINDIR)$(TARGET)
 
 clean:
-						-rm -f $(OBJDIR)*.o $(BINDIR)$(TARGET) $(BINDIR)*.map *.err 
+							-rm -f $(OBJDIR)*.o $(BINDIR)$(TARGET) $(BINDIR)*.map *.err 
 
 $(OBJDIR)%.o : $(SRCDIR)%.cpp
-						$(CC) $(CFLAGS) -c -o $@ $<
+							$(CC) $(CFLAGS) -c -o $@ $<
 
 $(BINDIR)$(TARGET): 	$(addprefix $(OBJDIR), $(OBJS))
-						$(CC) $(LDFLAGS) -o $@ $^
+							$(CC) $(LDFLAGS) -o $@ $^
