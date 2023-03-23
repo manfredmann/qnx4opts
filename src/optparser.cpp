@@ -216,18 +216,18 @@ bool OptParser::parse(int argc, char **argv, bool help) {
             case OPT_RAW_SHORT: {
                 name = String(val, 1, 1);
 
-                if (argi + 1 != argc) {
-                    if (opt_raw_type(argv[argi + 1]) == OPT_RAW_NO) {
-                        param = String(argv[argi + 1]);
-
-                        ++argi;
-                    }
-                }
-
                 int eq = find_eq(val);
 
                 if (eq) {
                     param = String(val, eq);
+                }
+
+                if (argi + 1 != argc) {
+                    if (opt_raw_type(argv[argi + 1]) == OPT_RAW_NO && !eq) {
+                        param = String(argv[argi + 1]);
+
+                        ++argi;
+                    }
                 }
 
                 break;
@@ -241,19 +241,19 @@ bool OptParser::parse(int argc, char **argv, bool help) {
             case OPT_RAW_LONG: {
                 name = String(val, 2);
 
-                if (argi + 1 != argc) {
-                    if (opt_raw_type(argv[argi + 1]) == OPT_RAW_NO) {
-                        param = String(argv[argi + 1]);
-
-                        ++argi;
-                    }
-                }
-
                 int eq = find_eq(name);
 
                 if (eq) {
                     param = String(name, eq);
                     name = String(name, 0, eq - 1);
+                }
+
+                if (argi + 1 != argc) {
+                    if (opt_raw_type(argv[argi + 1]) == OPT_RAW_NO && !eq) {
+                        param = String(argv[argi + 1]);
+
+                        ++argi;
+                    }
                 }
 
                 break;

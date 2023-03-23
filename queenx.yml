@@ -32,3 +32,7 @@ run:
         - -f 3.14
         - -s "Hello, world!"
         - -e 0xAA55
+    - name: "test3"
+      args:
+        - "-i 1"
+        - "-t"
